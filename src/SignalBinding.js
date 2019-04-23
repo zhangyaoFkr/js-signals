@@ -79,6 +79,7 @@
             if (this.active && !!this._listener) {
                 params = this.params? this.params.concat(paramsArr) : paramsArr;
                 handlerReturn = this._listener.apply(this.context, params);
+                // 如果 _isOnce 执行过后就删掉
                 if (this._isOnce) {
                     this.detach();
                 }

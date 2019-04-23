@@ -70,20 +70,25 @@
          * @private
          */
         _registerListener : function (listener, isOnce, listenerContext, priority) {
-
+            // 看下新的 listener 有没有注册过
             var prevIndex = this._indexOfListener(listener, listenerContext),
                 binding;
 
             if (prevIndex !== -1) {
+                // 如果注册过
                 binding = this._bindings[prevIndex];
+                // 如果后传入的 listener 和之前传入的 listener 的 isOnce 属性不一样, 报错提示
+                // (一次通过 add 另一次通过 addOnce)
                 if (binding.isOnce() !== isOnce) {
                     throw new Error('You cannot add'+ (isOnce? '' : 'Once') +'() then add'+ (!isOnce? '' : 'Once') +'() the same listener without removing the relationship first.');
                 }
             } else {
+                // 如果没注册过, 生成一个 binding 对象
                 binding = new SignalBinding(this, listener, isOnce, listenerContext, priority);
+                // 把这个 binding 对象存到 _.bindings 数组中
                 this._addBinding(binding);
             }
-
+            // 如果 memorize 选项为 truty, 并且在 add 和 addOnce 之前最后一次执行过 dispatch, dispatch 的参数会被存下来, 并会被在 add || addOnce 时调用
             if(this.memorize && this._prevParams){
                 binding.execute(this._prevParams);
             }
@@ -97,6 +102,7 @@
          */
         _addBinding : function (binding) {
             //simplified insertion sort
+            // 把 binding 对象按优先级塞到对应的位置
             var n = this._bindings.length;
             do { --n; } while (this._bindings[n] && binding._priority <= this._bindings[n]._priority);
             this._bindings.splice(n + 1, 0, binding);
@@ -107,6 +113,7 @@
          * @return {number}
          * @private
          */
+        // 找到已注册的相同的 listener & context 的下标
         _indexOfListener : function (listener, context) {
             var n = this._bindings.length,
                 cur;
@@ -125,6 +132,7 @@
          * @param {Object} [context]
          * @return {boolean} if Signal has the specified listener.
          */
+        // 能找到下标表示存在
         has : function (listener, context) {
             return this._indexOfListener(listener, context) !== -1;
         },
@@ -193,6 +201,7 @@
          * <p><strong>IMPORTANT:</strong> should be called only during signal dispatch, calling it before/after dispatch won't affect signal broadcast.</p>
          * @see Signal.prototype.disable
          */
+        // 这个设计蛮巧妙的
         halt : function () {
             this._shouldPropagate = false;
         },
